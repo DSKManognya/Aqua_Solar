@@ -1,3 +1,19 @@
+/*
+Aqua Solar – Floating Solar Water Quality Monitoring System
+Author: Manognya D S K
+Platform: Arduino UNO
+
+This system performs:
+1. Solar panel sun tracking using two LDR sensors and a servo motor
+2. Water quality monitoring using TDS, temperature, and humidity sensors
+3. Solar panel voltage monitoring
+4. Automatic bulb control based on panel voltage
+5. Data upload to ThingSpeak using ESP8266 WiFi module
+
+Project Goal:
+To create a solar-powered autonomous platform for monitoring environmental
+parameters in water bodies.
+*/
 #include <Servo.h>
 #include <DHT.h>
 #include <SoftwareSerial.h>
@@ -15,7 +31,7 @@
 #define ESP_TX 3  // Arduino TX (to ESP8266 RX via voltage divider)
 
 Servo sunServo;
-int servoPos = 90; // Center position
+int servoPos = 90; // Sets the servo's initial position as center
 
 #define DHTTYPE DHT11
 DHT dht(DHTPin, DHTTYPE);
@@ -28,8 +44,8 @@ SoftwareSerial espSerial(ESP_RX, ESP_TX);
 #define TS_APIKEY "your_thingspeak_api_key" // Replace with your ThingSpeak API key
 
 // ---------- PROJECT PARAMETERS ----------
-const float bulbVoltageThreshold = 1.0;  // Volts, set according to your setup
-const int ldrSensitivity = 50;            // LDR difference sensitivity for tracking
+const float bulbVoltageThreshold = 1.0;  // The minimum voltage to turn on the bulb
+const int ldrSensitivity = 50;            // sensitivity for sun tracking
 
 void setup() {
   Serial.begin(9600);
@@ -60,19 +76,22 @@ const unsigned long uploadInterval = 60000;
 
 void loop() {
   // --- LDR Sun Tracking ---
+  //To detect which side is receiving more sunlight
+  //The servo motor rotates the solar panel towards the brighter side for maximum solar energy harversting
   int ldrLeft = analogRead(LDRLeftPin);
   int ldrRight = analogRead(LDRRightPin);
-  int diff = ldrLeft - ldrRight;
+  int ldrDiff = ldrLeft - ldrRight;
 
-  if (diff > ldrSensitivity && servoPos > 0)
+  if (ldrDiff > ldrSensitivity && servoPos > 0)
     servoPos -= 1;
-  else if (diff < -ldrSensitivity && servoPos < 180)
+  else if (ldrDiff < -ldrSensitivity && servoPos < 180)
     servoPos += 1;
   sunServo.write(servoPos);
 
   // --- Voltage Sensor ---
   int rawVoltage = analogRead(VoltageSensorPin);
-  float panelVoltage = (rawVoltage / 1023.0) * 5.0 * 5.0; // Adjust multiplier to match sensor divider
+  float panelVoltage = (rawVoltage / 1023.0) * 5.0 * 5.0; // Voltage divider scaling factor (depends on sensor module).
+// Adjust this multiplier based on calibration with a multimeter.
 
   // --- Bulb Control ---
   if (panelVoltage >= bulbVoltageThreshold)
@@ -82,7 +101,7 @@ void loop() {
 
   // --- TDS Sensor ---
   int tdsRaw = analogRead(TDSPin);
-  float tdsValue = (tdsRaw / 1023.0) * 5.0 * 1000; // Calibrate as needed
+  float tdsValue = (tdsRaw / 1023.0) * 5.0 * 1000; 
 
   // --- DHT11 Sensor ---
   float temperature = dht.readTemperature();
@@ -101,7 +120,9 @@ void loop() {
   }
   Serial.println();
 
-  // --- WiFi Data Upload Section ---
+  // --- WiFi Data Upload Section ---//
+  //Upload sensor data to ThingSpeak cloud platform
+  // every 60 seconds for remote monitoring.
   if (millis() - lastUpload > uploadInterval) {
     lastUpload = millis();
 
