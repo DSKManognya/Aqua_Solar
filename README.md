@@ -8,11 +8,11 @@ Aqua_Solar is designed to address land usage issues caused by traditional solar 
 This dual-purpose approach not only generates renewable energy but also ensures that the water ecosystem remains safe and sustainable.
 
 ## 🚀 Features
-- ☀️ Floating solar panel setup for power generation  
-- 💧 Integrated water quality monitoring system  
-- 🌍 Efficient land usage by utilizing water surfaces  
-- 📊 Sensor-based data collection (pH, turbidity, etc.)  
-- ⚡ Sustainable and eco-friendly solution  
+- Floating solar panel setup for power generation  
+- Integrated water quality monitoring system  
+- Efficient land usage by utilizing water surfaces  
+- Sensor-based data collection (pH, turbidity, etc.)  
+- Sustainable and eco-friendly solution  
 
 ## 🛠️ Tech Stack
 - Arduino  
